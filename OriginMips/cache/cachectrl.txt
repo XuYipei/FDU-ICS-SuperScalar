@@ -1,0 +1,40 @@
+INIT:
+    hit:
+        w_en = cw_en
+        set_valid = 1
+        set_dirty = dirty | cw_en
+        mw_en = 0
+        strategy_en = 1
+        offset_sel = 1
+    !hit:
+        dirty:
+            w_en = 0
+            set_valid = 1
+            set_dirty = 1
+            mw_en = 0
+            strategy_en = 1
+            offset_sel = 0
+        !dirty:
+            w_en = 0
+            set_valid = 1
+            set_dirty = 1
+            mw_en = 1
+            strategy_en = 1
+            offset_sel = 0
+
+READMEM:
+    w_en = 1
+    set_valid = 1
+    set_dirty = 0
+    mw_en = 0
+    strategy_en = 0
+    offset_sel = 1
+
+WRITEMEM:
+    w_en = 0
+    set_valid = 1
+    set_dirty = 0
+    mw_en = 1
+    strategy_en = 0
+    offset_sel = 0
+
