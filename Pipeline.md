@@ -6,6 +6,8 @@
 
 选择PC+8、PC+4还是Branch/Jump
 
+暂时不考虑Jump/bpb优化，实现最普通的PC选择，
+
 ### Icache
 
 根据PC输出64位的指令信号  
