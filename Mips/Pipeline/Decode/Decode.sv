@@ -11,7 +11,7 @@ module Decode(
         //RegFile
         input logic [31:0] InstrA, PCPlus4DInA,
         output logic BranchDA, JumpDA, JumpRegDA, JumpLinkDA,
-        output logic [31: 0] RegWriteDA, MemtoRegDA, MemWriteDA,
+        output logic RegWriteDA, MemtoRegDA, MemWriteDA,
         output logic [2: 0] ALUControlDA,
         output logic ALUSrcDA, RegDstDA, BitShiftDA,
         output logic [31: 0] rd1A, rd2A,
@@ -21,7 +21,7 @@ module Decode(
         //DecodeInstrA
         input logic [31:0] InstrB, PCPlus4DInB,
         output logic BranchDB, JumpDB, JumpRegDB, JumpLinkDB,
-        output logic [31: 0] RegWriteDB, MemtoRegDB, MemWriteDB,
+        output logic RegWriteDB, MemtoRegDB, MemWriteDB,
         output logic [2: 0] ALUControlDB,
         output logic ALUSrcDB, RegDstDB, BitShiftDB,
         output logic [31: 0] rd1B, rd2B,

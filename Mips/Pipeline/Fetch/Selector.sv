@@ -6,14 +6,14 @@ module Selector(
         input logic clk, reset,
         input logic Stall, Flush,
         input logic SuperScalar,
-        output logic [31: 0] PCA,
-        output logic [31: 0] PCB,
-        output logic [31: 0] InstrA,
-        output logic [31: 0] InstrB,
-        //Tp CPU
         input logic [31: 0] PCBranch,
         input logic Branch,
         // To CPU
+        output logic [31: 0] PCPlus4FOutA,
+        output logic [31: 0] InstrA,
+        output logic [31: 0] PCPlus4FOutB,
+        output logic [31: 0] InstrB,
+        //To CPU
         input logic TLBExpection,
         output logic [31: 0] Addr,
         input logic [63: 0] Instr
@@ -40,11 +40,10 @@ module Selector(
                             end
                         else
                             begin
-                                NextAddr <= (TLBExpection) ? (Addr + 4) : (Addr + 8);
-                                PCA <= (TLBExpection) ? (Addr) : (Addr - 4);    
+                                NextAddr <= (TLBExpection) ? (Addr + 4) : (Addr + 8);   
                             end
-                        PCA <= (TLBExpection) ? (Addr) : (Addr - 4);
-                        PCB <= (TLBExpection) ? (Addr + 4) : (Addr);                             
+                        PCPlus4FOutA <= (TLBExpection) ? (Addr + 3'b100) : (Addr);
+                        PCPlus4FOutB <= (TLBExpection) ? (Addr + 4'b1000) : (Addr + 3'b100);                             
                         InstrA <= (SuperScalar) ? (Instr[31: 0]) : (InstrBReg);
                         InstrB <= (SuperScalar) ? (Instr[63: 32]) : (Instr[31: 0]);
                     end
@@ -59,8 +58,8 @@ module Selector(
                             begin
                                 NextAddr <= (TLBExpection) ? (Addr + 4) : (Addr + 8);    
                             end
-                        PCA <= (TLBExpection) ? (Addr) : (Addr - 4);
-                        PCB <= (TLBExpection) ? (Addr + 4) : (Addr);
+                        PCPlus4FOutA <= (TLBExpection) ? (Addr + 3'b100) : (Addr);
+                        PCPlus4FOutB <= (TLBExpection) ? (Addr + 4'b1000) : (Addr + 3'b100);
                         InstrA <= (SuperScalar) ? (Instr[31: 0]) : (InstrBReg);
                         InstrB <= (SuperScalar) ? (Instr[63: 32]) : (Instr[31: 0]);
                     end
@@ -82,7 +81,12 @@ module Selector(
                         if (Branch) STATE <= 2'b00;
                         else
                             if (STATE == 2'b01)
-                                STATE <= (SuperScalar) ? (2'b01) : (2'b10); 
+                                begin
+                                    if (SuperScalar)
+                                        STATE <= (TLBExpection) ? (2'b01) : (2'b10);
+                                    else
+                                        STATE <= (TLBExpection) ? (2'b01) : (2'b10); 
+                                end 
                             else 
                                 STATE <= (SuperScalar) ? (2'b01) : (2'b10);
                     end

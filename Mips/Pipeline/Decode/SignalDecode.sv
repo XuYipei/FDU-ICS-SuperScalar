@@ -47,7 +47,7 @@ module SignalDecode(
     assign PCRegD = rd1;
     
     logic eql;
-    Equal #(32) Equalrd(rd1, rd2, eql);
+    assign eql = (rd1 == rd2);
     assign BranchD = (eql & Brancheq) | ((~eql) & Branchneq);
     assign PCBranchD = (BranchD) ? (PCBranchD_) : (PCPlus4DIn);
     assign PCPlus4DOut = PCPlus4DIn;
