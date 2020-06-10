@@ -18,17 +18,21 @@ module DataPath(
     Fetch Fetch(clk, reset, StallF, FlushF,
                 SuperScalarD, BranchD, 
                 PCBranchD, 
-                PCPlus4FOutA, InstrA,
-                PCPlus4FoutB, InstrB,
+                PCPlus4FOutA, InstrFOutA,
+                PCPlus4FOutB, InstrFOutB,
                 ITLBExpection,
                 IAddr, IReadData);
     
-    DecodeReg DecodeReg();
+    DecodeReg DecodeReg(clk, reset, StallD, FlushD,
+                        PCPlus4FOutA, InstrFOutA,
+                        PCPlus4DInA, InstrDInA,
+                        PCPlus4FOutB, InstrFOutB,
+                        PCPlus4DInB, InstrDInB
+                        );
     Decode Decode(clk, 
-                  RegWriteWOutA,
- WriteRegWOutA, ResultWOutA, 
+                  RegWriteWOutA, WriteRegWOutA, ResultWOutA, 
                   RegWriteWOutB, WriteRegWOutB, ResultWOutB,
-                  InstrA, PCPlus4DInA,
+                  InstrDInA, PCPlus4DInA,
                   BranchDA, JumpDA, JumpRegDA, JumpLinkDA,
                   RegWriteDA, MemtoRegDA, MemWriteDA,
                   ALUControlDA,
@@ -37,7 +41,7 @@ module DataPath(
                   rsDA, rtDA, rdDA,
                   ImmDA, BitNumDA, PCPlus4DOutA,
                   PCBranchDA, PCJumpDA, PCRegDA,
-                  InstrB, PCPlus4DInB,
+                  InstrDInB, PCPlus4DInB,
                   BranchDB, JumpDB, JumpRegDB, JumpLinkDB,
                   RegWriteDB, MemtoRegDB, MemWriteDB,
                   ALUControlDB,
@@ -46,16 +50,42 @@ module DataPath(
                   rsDB, rtDB, rdDB,
                   ImmDB, BitNumDB, PCPlus4DOutB,
                   PCBranchDB, PCJumpDB, PCRegDB,
-                  SuperScalarD);
+                  SuperScalarD
+                  );
                                         
-    ExecuteReg ExecuteReg();
+    ExecuteReg ExecuteReg(clk, reset, StallE, FlushE,
+                          JumpLinkDA, RegWriteDA, MemtoRegDA, MemWriteDA,
+                          ALUControlDA,
+                          ALUSrcDA, RegDstDA, BitShiftDA,
+                          rd1A, rd2A,
+                          rsDA, rtDA, rdDA,
+                          ImmDA, BitNumDA, PCPlus4DOutA,
+                          JumpLinkEInA, RegWriteEInA, MemtoRegEInA, MemWriteEInA,
+                          ALUControlEInA,
+                          ALUSrcEInA, RegDstEInA, BitShiftEInA,
+                          rd1EA, rd2EA,
+                          rsEA, rtEA, rdEA, 
+                          ImmEA, BitNumEA, PCPlus4EInA,
+                          JumpLinkDB, RegWriteDB, MemtoRegDB, MemWriteDB,
+                          ALUControlDB,
+                          ALUSrcDB, RegDstDB, BitShiftDB,
+                          rd1B, rd2B,
+                          rsDB, rtDB, rdDB,
+                          ImmDB, BitNumDB, PCPlus4DOutB,
+                          JumpLinkEInB, RegWriteEInB, MemtoRegEInB, MemWriteEInB,
+                          ALUControlEInB,
+                          ALUSrcEInB, RegDstEInB, BitShiftEInB,
+                          rd1EB, rd2EB,
+                          rsEB, rtEB, rdEB, 
+                          ImmEB, BitNumEB, PCPlus4EInB
+                          );
     Execute Execute(JumpLinkEInA, RegWriteEInA, MemtoRegEInA, MemWriteEInA,
                     ALUControlEInA,
                     ALUSrcEInA, RegDstEInA, BitShiftEInA,
                     rd1EA, rd2EA,
                     rsEA, rtEA, rdEA, 
-                    ImmEA, BitNumEA, PCPlus4EA, ALUOutMA, ResultWA,
-                    WriteRegEA,
+                    ImmEA, BitNumEA, PCPlus4EInA, ALUOutMA, ResultWA,
+                    WriteRegEOutA,
                     WriteDataEA, ALUOutEA,
                     RegWriteEOutA, MemWriteEOutA, MemtoRegEOutA,
                     JumpLinkEInB, RegWriteEInB, MemtoRegEInB, MemWriteEInB,
@@ -63,12 +93,26 @@ module DataPath(
                     ALUSrcEInB, RegDstEInB, BitShiftEInB,
                     rd1EB, rd2EB,
                     rsEB, rtEB, rdEB, 
-                    ImmEB, BitNumEB, PCPlus4EB, ALUOutMB, ResultWB,
-                    WriteRegEB,
+                    ImmEB, BitNumEB, PCPlus4EInB, ALUOutMB, ResultWB,
+                    WriteRegEOutB,
                     WriteDataEB, ALUOutEB,
-                    RegWriteEOutB, MemWriteEOutB, MemtoRegEOutB); 
+                    RegWriteEOutB, MemWriteEOutB, MemtoRegEOutB
+                    ); 
     
-    MemoryReg MemoryReg();
+    MemoryReg MemoryReg(clk, reset, 1'b0, 1'b0,
+                        RegWriteEOutA, MemtoRegEOutA, MemWriteEOutA,
+                        ALUOutEA, WriteDataEA,
+                        WriteRegEOutA,
+                        RegWriteMInA, MemtoRegMInA, MemWriteMInA,
+                        ALUOutMInA, WriteDataMInA,
+                        WriteRegMInA,
+                        RegWriteEOutB, MemtoRegEOutB, MemWriteEOutB,
+                        ALUOutEB, WriteDataEB,
+                        WriteRegEOutB,
+                        RegWriteMInB, MemtoRegMInB, MemWriteMInB,
+                        ALUOutMInB, WriteDataMInB,
+                        WriteRegMInB
+                        );
     Memory Memory(RegWriteMInA, MemtoRegMInA, MemWriteMInA,
                   ALUOutMInA, WriteDataMInA,
                   WriteRegMInA,
@@ -87,7 +131,20 @@ module DataPath(
                   DAddr, DWriteData,
                   DReadData);
     
-    WriteBackReg WriteBackReg();
+    WriteBackReg WriteBackReg(clk, reset, Stall, Flush,
+                              RegWriteMOutA, MemtoRegMOutA,
+                              ReadDataMOutA, ALUOutMOutA,
+                              WriteRegMOutA,
+                              RegWriteWInA, MemtoRegWInA,
+                              ReadDataWInA, ALUOutWInA,
+                              WriteRegWInA,
+                              RegWriteMOutB, MemtoRegMOutB,
+                              ReadDataMOutB, ALUOutMOutB,
+                              WriteRegMOutB,
+                              RegWriteWInB, MemtoRegWInB,
+                              ReadDataWInB, ALUOutWInB,
+                              WriteRegWInB
+                              );
     WriteBack WriteBack(RegWriteWInA, MemtoRegWInA,
                         ReadDataWInA, ALUOutWInA,
                         WriteRegWInA,
