@@ -21,20 +21,22 @@ module set #(parameter
         input logic offset_sel,
 	    input logic [31:0] addr, write_data, mread_data,
 	    output logic hit, dirty,
-	    output logic [31:0] read_data,
+	    output logic [31:0] read_dataA, read_dataB,
+	    output logic TLBExpection,
 	    output logic [TAG_WIDTH - 1: 0] tag
     );
 
     
     logic [TAG_WIDTH - 1: 0] addr_tag;
     assign addr_tag = addr[31: OFFSET_WIDTH + SET_WIDTH];
-    
-    logic [31: 0] line_read_data [LINES - 1: 0];
+
     logic [LINES - 1: 0] line_valid;
     logic [LINES - 1: 0] line_dirty;
     logic [LINES - 1: 0] line_wen;
     logic [TAG_WIDTH - 1: 0] line_tag [LINES - 1: 0];
-    logic [31: 0] line_data [LINES - 1: 0];
+    logic [31: 0] line_dataA [LINES - 1: 0];
+    logic [31: 0] line_dataB [LINES - 1: 0];
+    logic [LINES - 1: 0] line_TLBExpection;
     logic [31: 0] write_data_line;
     
     assign write_data_line = (!offset_sel) ? (write_data) : (mread_data);
@@ -44,17 +46,23 @@ module set #(parameter
                              .w_en(line_wen), .set_valid(set_valid), .set_dirty(set_dirty),
                              .set_tag(addr_tag), .write_data(write_data_line),
                              .valid(line_valid), .dirty(line_dirty), 
-                             .tag(line_tag), .read_data(line_data));
+                             .tag(line_tag), 
+                             .read_dataA(line_dataA), .read_dataB(line_dataB),
+                             .TLBExpection(line_TLBExpection));
     
     LRU SetController(.clk(clk), .reset(reset), .en(strategy_en & en),
                       .addr_tag(addr_tag),
                       .line_tag(line_tag), 
                       .line_valid(line_valid), .line_dirty(line_dirty),
-                      .line_data(line_data),
+                      .line_dataA(line_dataA),
+                      .line_dataB(line_dataB),
+                      .line_TLBExpection(line_TLBExpection),
                       .wen(w_en & en),
                       .hit(hit), .dirty(dirty),
                       .line_wen(line_wen),
-                      .read_data(read_data),
+                      .read_dataA(read_dataA),
+                      .read_dataB(read_dataB),
+                      .TLBExpection(TLBExpection),
                       .replace_tag(tag));
                               
 endmodule

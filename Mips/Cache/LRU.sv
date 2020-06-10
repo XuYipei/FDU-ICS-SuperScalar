@@ -29,11 +29,15 @@ module LRU #(parameter
         input logic [TAG_WIDTH - 1: 0] addr_tag,
         input logic [TAG_WIDTH - 1: 0] line_tag [LINES - 1: 0],
         input logic [LINES - 1: 0] line_valid, line_dirty,
-        input logic [31: 0] line_data [LINES - 1: 0],
+        input logic [31: 0] line_dataA [LINES - 1: 0],
+        input logic [31: 0] line_dataB [LINES - 1: 0],
+        input logic [LINES - 1: 0] line_TLBExpection,
         input logic wen,  
         output logic hit, dirty, 
         output logic [LINES - 1: 0] line_wen,
-        output logic [31: 0] read_data,
+        output logic [31: 0] read_dataA,
+        output logic [31: 0] read_dataB,
+        output logic TLBExpection,
         output logic [TAG_WIDTH - 1: 0] replace_tag 
     );
     logic [2: 0] tmp;
@@ -79,7 +83,9 @@ module LRU #(parameter
                 begin
                     hits <= {1'b1, line_dirty[0]};
                     line_wen <= {3'b0, wen};
-                    read_data <= line_data[0];
+                    read_dataA <= line_dataA[0];
+                    read_dataB <= line_dataB[0];
+                    TLBExpection <= line_TLBExpection[0];
                     replace_tag <= line_tag[0];
                 end
             else
@@ -87,7 +93,9 @@ module LRU #(parameter
                     begin
                         hits <= {1'b1, line_dirty[1]};
                         line_wen <= {2'b0, wen, 1'b0};
-                        read_data <= line_data[1];
+                        read_dataA <= line_dataA[1];
+                        read_dataB <= line_dataB[1];
+                        TLBExpection <= line_TLBExpection[1];
                         replace_tag <= line_tag[1];
                     end
                 else
@@ -95,7 +103,9 @@ module LRU #(parameter
                         begin
                             hits <= {1'b1, line_dirty[2]};
                             line_wen <= {1'b0, wen, 2'b0};
-                            read_data <= line_data[2];
+                            read_dataA <= line_dataA[2];
+                            read_dataB <= line_dataB[2];
+                            TLBExpection <= line_TLBExpection[2];
                             replace_tag <= line_tag[2];
                         end
                     else
@@ -103,14 +113,18 @@ module LRU #(parameter
                             begin
                                 hits <= {1'b1, line_dirty[3]};
                                 line_wen <= {wen, 3'b0};
-                                read_data <= line_data[3];
+                                read_dataA <= line_dataA[3];
+                                read_dataB <= line_dataB[3];
+                                TLBExpection <= line_TLBExpection[3];
                                 replace_tag <= line_tag[3];
                             end
                         else 
                             begin
                                 hits <= {1'b0, line_dirty[index[0]]};
                                 replace_tag <= line_tag[index[0]];
-                                read_data <= line_data[index[0]];
+                                read_dataA <= line_dataA[index[0]];
+                                read_dataB <= line_dataB[index[0]];
+                                TLBExpection <= line_TLBExpection[index[0]];
                                 line_wen = 4'b0000;
                                 line_wen[index[0]] = wen;
                             end

@@ -14,20 +14,23 @@ module line #(
         output logic valid, 
         output logic dirty,
         output logic [TAG_WIDTH - 1:0] tag,
-        output logic [31:0] read_data
+        output logic [31:0] read_dataA, read_dataB,
+        output logic TLBExpection
     );
     
-    logic [7: 0] line_block [(1 << OFFSET_WIDTH) - 1 : 0];
+    logic [8: 0] line_block [(1 << OFFSET_WIDTH) - 1 : 0];
     logic [TAG_WIDTH - 1 : 0] line_tag;
     logic [OFFSET_WIDTH - 1 : 0] line_index;
     logic line_valid, line_dirty;
     
     assign line_index = {offset, 2'b00 };     
     assign tag = line_tag;
-    assign read_data = {line_block[line_index + 3], line_block[line_index + 2], line_block[line_index + 1], line_block[line_index]};
     assign dirty = line_dirty;
     assign valid = line_valid;
-      
+    assign read_dataA = {line_block[line_index + 3], line_block[line_index + 2], line_block[line_index + 1], line_block[line_index]};
+    assign read_dataB = (TLBExpection) ? (32'b0) : {line_block[line_index + 7], line_block[line_index + 6], line_block[line_index + 5], line_block[line_index + 4]};
+    assign TLBExpection = (line_index + 4) >= (1 << OFFSET_WIDTH);
+    
     integer i;
     always_ff @(posedge clk, posedge reset)
         begin

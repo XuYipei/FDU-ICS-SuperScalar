@@ -33,7 +33,8 @@ module cache #(parameter TAG_WIDTH = `CACHE_T,
        input logic [31:0] addr, write_data,
        input logic w_en,
        output logic hit,
-       output logic [31:0] read_data,
+       output logic [31:0] read_dataA, read_dataB,
+       output logic TLBExpection,
        // interface with memory
        output logic [31:0] maddr, mwrite_data,
        output logic m_wen,
@@ -47,7 +48,9 @@ module cache #(parameter TAG_WIDTH = `CACHE_T,
     logic [OFFSET_WIDTH - 3: 0] offset;
     logic [SET_WIDTH - 1: 0] set_index; 
     logic [31: 0] caddr;
-    logic [31: 0] read_data_arr [(1 << SET_WIDTH) - 1: 0];
+    logic [31: 0] read_dataA_arr [(1 << SET_WIDTH) - 1: 0];
+    logic [31: 0] read_dataB_arr [(1 << SET_WIDTH) - 1: 0];
+    logic [(1 << SET_WIDTH) - 1: 0] TLBExpection_arr;
     logic [TAG_WIDTH - 1: 0] tag_arr [(1 << SET_WIDTH) - 1: 0];
     
     logic [(1 << SET_WIDTH) - 1: 0] en_arr;
@@ -74,7 +77,9 @@ module cache #(parameter TAG_WIDTH = `CACHE_T,
                                       .offset_sel(offset_sel),
                                       .addr(addr), .write_data(write_data), .mread_data(mread_data),
                                       .hit(hit_arr), .dirty(dirty_arr),
-                                      .read_data(read_data_arr),
+                                      .read_dataA(read_dataA_arr),
+                                      .read_dataB(read_dataB_arr),
+                                      .TLBExpection(TLBExpection_arr),
                                       .tag(tag_arr));
                                                                             
     cache_controller cc(.clk(clk), .reset(reset), .en(input_ready),
@@ -91,7 +96,9 @@ module cache #(parameter TAG_WIDTH = `CACHE_T,
         begin
             if (input_ready)
                 begin
-                    read_data <= read_data_arr[set_index];
+                    read_dataA <= read_dataA_arr[set_index];
+                    read_dataB <= read_dataB_arr[set_index];
+                    TLBExpection <= TLBExpection_arr[set_index];
                     dirty <= dirty_arr[set_index];
                     hit <= hit_arr[set_index];
                 end
@@ -103,7 +110,7 @@ module cache #(parameter TAG_WIDTH = `CACHE_T,
     always @(*)
         begin
             caddr <= {tag_arr[set_index], set_index, offset, 2'b00};
-            mwrite_data <= read_data;
+            mwrite_data <= read_dataA;
             if (hit)
                 maddr <= addr;
             else
@@ -113,3 +120,4 @@ module cache #(parameter TAG_WIDTH = `CACHE_T,
                     maddr <= {addr[31: SET_WIDTH + OFFSET_WIDTH], set_index, offset, 2'b00};
         end                    
 endmodule
+
